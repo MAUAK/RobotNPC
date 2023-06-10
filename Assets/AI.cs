@@ -19,6 +19,7 @@ public class AI : MonoBehaviour
     public Vector3 target;      
     float health = 100.0f;
     float shotRange = 40.0f;
+    public GameObject gw;
 
     //Criando os métodos para a árvore de comportamento    
     [Task]
@@ -49,9 +50,10 @@ public class AI : MonoBehaviour
     }
 
     [Task]
-    //Método para destruir o NPC
+    //Método para destruir o NPC e ativar a tela de vitória
     public bool Explode()
     {
+        gw.SetActive(true);
         Destroy(healthBar.gameObject);
         Destroy(this.gameObject);
         return true;

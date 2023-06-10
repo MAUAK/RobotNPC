@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Drive : MonoBehaviour {
 
@@ -25,5 +26,11 @@ public class Drive : MonoBehaviour {
             GameObject bullet = GameObject.Instantiate(bulletPrefab, bulletSpawn.transform.position, bulletSpawn.transform.rotation);
             bullet.GetComponent<Rigidbody>().AddForce(bullet.transform.forward*2000);
         }
+    }
+
+    //Método para resetar a cena
+    public void restart()
+    {
+        SceneManager.LoadScene(0);
     }
 }
