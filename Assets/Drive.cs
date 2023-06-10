@@ -4,12 +4,14 @@ using UnityEngine;
 
 public class Drive : MonoBehaviour {
 
+    //Declarando variáveis
 	float speed = 20.0F;
     float rotationSpeed = 120.0F;
     public GameObject bulletPrefab;
     public Transform bulletSpawn;
 
     void Update() {
+        //Fazendo os comandos para andar
         float translation = Input.GetAxis("Vertical") * speed;
         float rotation = Input.GetAxis("Horizontal") * rotationSpeed;
         translation *= Time.deltaTime;
@@ -17,6 +19,7 @@ public class Drive : MonoBehaviour {
         transform.Translate(0, 0, translation);
         transform.Rotate(0, rotation, 0);
 
+        //Se apertar espaço, o robo atira
         if(Input.GetKeyDown("space"))
         {
             GameObject bullet = GameObject.Instantiate(bulletPrefab, bulletSpawn.transform.position, bulletSpawn.transform.rotation);

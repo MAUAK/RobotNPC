@@ -7,6 +7,7 @@ using Panda;
 
 public class AI : MonoBehaviour
 {
+    //Declarando as variáveis
     public Transform player;
     public Transform bulletSpawn;
     public Slider healthBar;   
@@ -14,99 +15,88 @@ public class AI : MonoBehaviour
     public LayerMask mascaraObstaculos;
 
     NavMeshAgent agent;
-    public Vector3 destination; // The movement destination.
-    public Vector3 target;      // The position to aim to.
+    public Vector3 destination;
+    public Vector3 target;      
     float health = 100.0f;
-    float rotSpeed = 5.0f;
-    float atrasoEntreTiros = 0.5f;
-    bool PodeAtirar = false;
-
-    float visibleRange = 80.0f;
     float shotRange = 40.0f;
 
-        [Task]
-        public void PickRandomDestination()
+    //Criando os métodos para a árvore de comportamento    
+    [Task]
+    //Método para pegar um destino aleatório no mapa
+    public void PickRandomDestination()
+    {        
+        Vector3 dest = new Vector3(Random.Range(-100, 100), 0, Random.Range(-100, 100));
+        agent.SetDestination(dest);
+        Task.current.Succeed();
+    }
+    [Task]
+    //Método para o NPC andar para um destino
+    public void MoveToDestination()
+    {
+        if (Task.isInspected)
+        Task.current.debugInfo = string.Format("t={0:0.00}", Time.time);
+        if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending)
         {
-            Vector3 dest = new Vector3(Random.Range(-100, 100), 0, Random.Range(-100, 100));
-            agent.SetDestination(dest);
             Task.current.Succeed();
         }
-        [Task]
-        public void MoveToDestination()
-        {
-            if (Task.isInspected)
-            Task.current.debugInfo = string.Format("t={0:0.00}", Time.time);
-            if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending)
-        {
-            Task.current.Succeed();
-        }
-        }
+    }
 
-        [Task]
-        public bool IsHealthLessThan(float health)
-        {
-            return this.health < health;
-        }
-        [Task]
-        public bool Explode()
-        {
-            Destroy(healthBar.gameObject);
-            Destroy(this.gameObject);
-            return true;
-        }
+    [Task]
+    //Método para retornar com a vida dele
+    public bool IsHealthLessThan(float health)
+    {
+        return this.health < health;
+    }
 
-        [Task]
-        public bool SeePlayer(){
-             // Verificar se há linha de visão direta entre o inimigo e o jogador
+    [Task]
+    //Método para destruir o NPC
+    public bool Explode()
+    {
+        Destroy(healthBar.gameObject);
+        Destroy(this.gameObject);
+        return true;
+    }
+
+    [Task]
+    //Método para verificar se o NPC está vendo o player
+    public bool SeePlayer(){
         RaycastHit hit;
         Vector3 direcaoJogador = player.position - transform.position;
-
         if (Physics.Linecast(transform.position, player.position, out hit, mascaraObstaculos))
         {
-            // Um obstáculo está bloqueando a linha de visão
             return false;
         }
         else
         {
             Debug.Log("Tem visão direta");
-            // Não há obstáculo bloqueando a linha de visão
             return true;
         }
-        
+    }
+
+    [Task]
+    //Método para o NPC olhar diretamente para o Player
+    public bool LookAtTarget(){
+        Vector3 direcaoJogador = player.position - transform.position;
+        direcaoJogador.y = 0f;
+        if (direcaoJogador != Vector3.zero)
+        {
+            Quaternion novaRotacao = Quaternion.LookRotation(direcaoJogador);
+            transform.rotation = Quaternion.Slerp(transform.rotation, novaRotacao, Time.deltaTime * 5f);
+            return true;
         }
+        else return false;
+    }
 
-        [Task]
-        public void TargetPlayer(){
-
-        }
-
-        [Task]
-        public bool LookAtTarget(){
-             // Calcular a direção do jogador em relação ao inimigo
-            Vector3 direcaoJogador = player.position - transform.position;
-            direcaoJogador.y = 0f; // Ignorar a componente y (altura)
-
-            // Rotacionar o inimigo para olhar na direção do jogador
-            if (direcaoJogador != Vector3.zero)
-            {
-                Quaternion novaRotacao = Quaternion.LookRotation(direcaoJogador);
-                transform.rotation = Quaternion.Slerp(transform.rotation, novaRotacao, Time.deltaTime * 5f);
-                return true;
-            }
-            else return false;
-        }
-
-
-        [Task]
-        public void Fire(){
-           
-                GameObject bullet = GameObject.Instantiate(bulletPrefab, bulletSpawn.transform.position, bulletSpawn.transform.rotation);
-                bullet.GetComponent<Rigidbody>().AddForce(bullet.transform.forward*2000);
-            
-        }
+    [Task]
+    //Método para sair o tiro
+    public void Fire(){           
+        GameObject bullet = GameObject.Instantiate(bulletPrefab, bulletSpawn.transform.position, bulletSpawn.transform.rotation);
+        bullet.GetComponent<Rigidbody>().AddForce(bullet.transform.forward*2000);            
+    }
 
     void Start()
     {
+        //Declarando o agente e ataulizando a vida
         agent = this.GetComponent<NavMeshAgent>();
         agent.stoppingDistance = shotRange - 5; //for a little buffer
         InvokeRepeating("UpdateHealth",5,0.5f);
@@ -114,17 +104,20 @@ public class AI : MonoBehaviour
 
     void Update()
     {
+        //Atualizando a barra de vida
         Vector3 healthBarPos = Camera.main.WorldToScreenPoint(this.transform.position);
         healthBar.value = (int)health;
         healthBar.transform.position = healthBarPos + new Vector3(0,60,0);
     }
 
+    //Método para atualizar a vida
     void UpdateHealth()
     {
        if(health < 100)
         health ++;
     }
 
+    //Se colidir com algo com a tag "bullet", a vida diminui em 10
     void OnCollisionEnter(Collision col)
     {
         if(col.gameObject.tag == "bullet")
