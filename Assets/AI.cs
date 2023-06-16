@@ -77,16 +77,15 @@ public class AI : MonoBehaviour
 
     [Task]
     //Método para o NPC olhar diretamente para o Player
-    public bool LookAtTarget(){
+    public void LookAtTarget(){
         Vector3 direcaoJogador = player.position - transform.position;
         direcaoJogador.y = 0f;
         if (direcaoJogador != Vector3.zero)
         {
             Quaternion novaRotacao = Quaternion.LookRotation(direcaoJogador);
             transform.rotation = Quaternion.Slerp(transform.rotation, novaRotacao, Time.deltaTime * 5f);
-            return true;
+            Fire();
         }
-        else return false;
     }
 
     [Task]

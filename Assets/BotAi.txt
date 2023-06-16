@@ -12,7 +12,6 @@ tree("Attack")
 	while SeePlayer
 		sequence
 			LookAtTarget
-			Fire
 tree("Dead")
 	sequence
 		IsHealthLessThan(0.1)
